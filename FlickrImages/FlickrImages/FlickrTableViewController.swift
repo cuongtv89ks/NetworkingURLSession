@@ -43,43 +43,42 @@ class FlickrTableViewController: UITableViewController {
     func loadFlickrImage() {
       
       // Create a configuration
-      
+      let configuration = URLSessionConfiguration.ephemeral
       // Create a session
-      
+      let session = URLSession(configuration: configuration)
       // Setup the url
       let url = URL(string: "https://api.flickr.com/services/feeds/photos_public.gne?format=json&nojsoncallback=1")!
       
       // Create the task
-
-//        guard let httpResponse = response as? HTTPURLResponse, httpResponse.statusCode == 200, let data = data else {
-//          return
-//        }
-//        do {
-//          let decoder = JSONDecoder()
-//          let media = try decoder.decode(FlickerJSON.self, from: data)
-//          for item in media.items {
-//            if let imageURL = item.media["m"] {
-//              let url = URL(string: imageURL)!
-//              let imageData = try Data(contentsOf: url)
-//              if let image = UIImage(data: imageData) {
-//                let flickrImage = FlckrPhoto(image: image, title: item.title)
-//                self.photos.append(flickrImage)
-//              }
-//            }
-//          }
-//          let queue = OperationQueue.main
-//          queue.addOperation {
-//            self.tableView.reloadData()
-//          }
-//        } catch {
-//          print("Error info: \(error)")
-//        }
-//      }
-  
-      
-      
-      
+      let task = session.dataTask(with: url) {
+        (data, response, error) in
+            guard let httpResponse = response as? HTTPURLResponse, httpResponse.statusCode == 200, let data = data else {
+              return
+            }
+            do {
+              let decoder = JSONDecoder()
+              let media = try decoder.decode(FlickerJSON.self, from: data)
+              for item in media.items {
+                if let imageURL = item.media["m"] {
+                  let url = URL(string: imageURL)!
+                  let imageData = try Data(contentsOf: url)
+                  if let image = UIImage(data: imageData) {
+                    let flickrImage = FlckrPhoto(image: image, title: item.title)
+                    self.photos.append(flickrImage)
+                  }
+                }
+              }
+              let queue = OperationQueue.main
+              queue.addOperation {
+                self.tableView.reloadData()
+              }
+            } catch {
+              print("Error info: \(error)")
+            }
+      }
+      task.resume()
     }
+
   
   
     override func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell {
